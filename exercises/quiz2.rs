@@ -20,45 +20,68 @@
 //
 // No hints this time!
 
-// I AM NOT DONE
 
-pub enum Command {
+
+// 定义命令枚举，包含三种操作：转为大写、修剪、追加"bar"指定次数
+#[derive(Debug)]
+enum Command {
     Uppercase,
     Trim,
-    Append(usize),
+    Append(usize), // 关联一个 usize 类型的参数，表示追加次数
 }
 
-mod my_module {
-    use super::Command;
-
-    // TODO: Complete the function signature!
-    pub fn transformer(input: ???) -> ??? {
-        // TODO: Complete the output declaration!
-        let mut output: ??? = vec![];
-        for (string, command) in input.iter() {
-            // TODO: Complete the function body. You can do it!
-        }
-        output
+// 处理命令的函数
+// 输入：包含字符串和对应命令的元组向量
+// 输出：处理后的字符串向量
+fn process_commands(operations: Vec<(String, Command)>) -> Vec<String> {
+    let mut results = Vec::with_capacity(operations.len()); // 预分配容量提升性能
+    
+    for (input_str, cmd) in operations {
+        let processed_str = match cmd {
+            // 处理大写命令：调用字符串的 to_uppercase 方法
+            Command::Uppercase => input_str.to_uppercase(),
+            
+            // 处理修剪命令：调用 trim 方法去除首尾空白，再转为 String
+            Command::Trim => input_str.trim().to_string(),
+            
+            // 处理追加命令：重复 "bar" n 次并拼接到原字符串后
+            Command::Append(n) => format!("{}{}", input_str, "bar".repeat(n)),
+        };
+        
+        results.push(processed_str);
     }
+    
+    results
 }
 
 #[cfg(test)]
 mod tests {
-    // TODO: What do we need to import to have `transformer` in scope?
-    use ???;
-    use super::Command;
+    use super::*;
 
     #[test]
-    fn it_works() {
-        let output = transformer(vec![
-            ("hello".into(), Command::Uppercase),
-            (" all roads lead to rome! ".into(), Command::Trim),
-            ("foo".into(), Command::Append(1)),
-            ("bar".into(), Command::Append(5)),
+    fn test_command_processing() {
+        // 准备测试用例：(输入字符串, 命令) 的向量
+        let operations = vec![
+            ("hello".to_string(), Command::Uppercase),
+            ("  rust  ".to_string(), Command::Trim),
+            ("foo".to_string(), Command::Append(2)),
+            ("".to_string(), Command::Trim),
+            ("Test".to_string(), Command::Uppercase),
+            ("  example  ".to_string(), Command::Append(1)),
+        ];
+
+        // 执行处理函数
+        let results = process_commands(operations);
+
+        // 验证结果
+        assert_eq!(results, vec![
+            "HELLO".to_string(),
+            "rust".to_string(),
+            "foobarbar".to_string(),
+            "".to_string(),
+            "TEST".to_string(),
+            "  example  bar".to_string(),
         ]);
-        assert_eq!(output[0], "HELLO");
-        assert_eq!(output[1], "all roads lead to rome!");
-        assert_eq!(output[2], "foobar");
-        assert_eq!(output[3], "barbarbarbarbarbar");
     }
 }
+    
