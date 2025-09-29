@@ -60,27 +60,43 @@ impl<T> MyStack<T> {
         self.q.enqueue(elem);
     }
 
-    pub fn pop(&mut self) -> Result<T, &str> {
-        if self.q.is_empty() {
-            return Err("Stack is empty");
-        }
-
-        // 使用单个队列实现栈
-        let mut n = self.q.size();
-        
-        // 将前 n-1 个元素出队并重新入队
-        while n > 1 {
-            let val = self.q.dequeue().unwrap();
-            self.q.enqueue(val);
-            n -= 1;
-        }
-        
-        // 返回最后一个元素（栈顶）
-        self.q.dequeue()
+   pub fn pop(&mut self) -> Result<T, &str> {
+    if self.is_empty() {
+        return Err("Stack is empty");
     }
 
+    let use_q1 = self.use_q1_as_main;
+    let main_size = if use_q1 { self.q1.size() } else { self.q2.size() };
+
+    // 临时转移元素
+    for _ in 0..main_size.saturating_sub(1) {
+        let val = if use_q1 {
+            self.q1.dequeue()?
+        } else {
+            self.q2.dequeue()?
+        };
+        if use_q1 {
+            self.q2.enqueue(val);
+        } else {
+            self.q1.enqueue(val);
+        }
+    }
+
+    // 取出最后一个元素
+    let result = if use_q1 {
+        self.q1.dequeue()
+    } else {
+        self.q2.dequeue()
+    }?;
+
+    // 切换主队列标志
+    self.use_q1_as_main = !self.use_q1_as_main;
+
+    Ok(result)
+}
+
     pub fn is_empty(&self) -> bool {
-        self.q.is_empty()
+        self.q1.is_empty() && self.q2.is_empty()
     }
 }
 

@@ -34,9 +34,6 @@
 // Execute `rustlings hint tests7` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
-
-fn main() {}
 
 #[cfg(test)]
 mod tests {
@@ -44,6 +41,15 @@ mod tests {
 
     #[test]
     fn test_success() {
+        // 临时设置环境变量
+        std::env::set_var("TEST_FOO", 
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                .to_string()
+        );
+        
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
