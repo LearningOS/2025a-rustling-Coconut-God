@@ -3,7 +3,7 @@
 	This problem requires you to implement a basic DFS traversal
 */
 
-// I AM NOT DONE
+
 use std::collections::HashSet;
 
 struct Graph {
@@ -23,7 +23,16 @@ impl Graph {
     }
 
     fn dfs_util(&self, v: usize, visited: &mut HashSet<usize>, visit_order: &mut Vec<usize>) {
-        //TODO
+        if visited.contains(&v) {
+            return;
+        }
+        visited.insert(v);
+        visit_order.push(v);
+        for &neighbor in &self.adj[v] {
+            if !visited.contains(&neighbor) {
+                self.dfs_util(neighbor, visited, visit_order);
+            }
+        }
     }
 
     // Perform a depth-first search on the graph, return the order of visited nodes
@@ -74,5 +83,63 @@ mod tests {
         let visit_order_disconnected = graph.dfs(3);
         assert_eq!(visit_order_disconnected, vec![3, 4]); 
     }
+}
+
+struct Stack<T> {
+    data: Vec<T>,
+    size: usize,
+}
+
+impl<T> Stack<T> {
+    fn new() -> Self {
+        Stack {
+            data: Vec::new(),
+            size: 0,
+        }
+    }
+
+    fn push(&mut self, value: T) {
+        self.data.push(value);
+        self.size += 1;
+    }
+
+    fn pop(&mut self) -> Option<T> {
+        if self.size == 0 {
+            None
+        } else {
+            self.size -= 1;
+            self.data.pop()
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.size == 0
+    }
+}
+
+fn bracket_match(bracket: &str) -> bool {
+    let mut stack = Stack::new();
+    for c in bracket.chars() {
+        match c {
+            '(' | '{' | '[' => stack.push(c),
+            ')' => {
+                if let Some(top) = stack.pop() {
+                    if top != '(' { return false; }
+                } else { return false; }
+            }
+            '}' => {
+                if let Some(top) = stack.pop() {
+                    if top != '{' { return false; }
+                } else { return false; }
+            }
+            ']' => {
+                if let Some(top) = stack.pop() {
+                    if top != '[' { return false; }
+                } else { return false; }
+            }
+            _ => {}
+        }
+    }
+    stack.is_empty()
 }
 
