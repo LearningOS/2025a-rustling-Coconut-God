@@ -23,6 +23,52 @@ where
             idx = self.parent_idx(idx);
         }
     }
+    
+        pub struct Heap<T> {
+            items: Vec<T>,
+            count: usize,
+            comparator: Box<dyn Fn(&T, &T) -> bool>,
+        }
+    
+        impl<T> Heap<T>
+        where
+            T: Default,
+        {
+            pub fn new<F>(cmp: F) -> Self
+            where
+                F: 'static + Fn(&T, &T) -> bool,
+            {
+                let mut items = Vec::new();
+                items.push(T::default()); // 占位，便于下标从1开始
+                Heap {
+                    items,
+                    count: 0,
+                    comparator: Box::new(cmp),
+                }
+            }
+            // ...add、parent_idx等方法在后面...
+        }
+    
+        pub trait Graph {
+            fn add_node(&mut self, node: &str) -> bool;
+            fn add_edge(&mut self, edge: (&str, &str, i32));
+        }
+    
+        pub struct MyGraph {
+            pub adjacency_table: std::collections::HashMap<String, Vec<(String, i32)>>,
+        }
+    
+        impl MyGraph {
+            pub fn new() -> Self {
+                MyGraph {
+                    adjacency_table: std::collections::HashMap::new(),
+                }
+            }
+            pub fn adjacency_table_mutable(&mut self) -> &mut std::collections::HashMap<String, Vec<(String, i32)>> {
+                &mut self.adjacency_table
+            }
+        }
+        // ...existing code...
 
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
