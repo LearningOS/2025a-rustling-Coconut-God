@@ -46,54 +46,60 @@ impl<T> Default for Queue<T> {
 }
 
 pub struct MyStack<T> {
-    q: Queue<T>,
+    q1: Queue<T>,
+    q2: Queue<T>,
+    use_q1_as_main: bool,
 }
 
 impl<T> MyStack<T> {
     pub fn new() -> Self {
         Self {
-            q: Queue::new(),
+            q1: Queue::new(),
+            q2: Queue::new(),
+            use_q1_as_main: true,
         }
     }
 
     pub fn push(&mut self, elem: T) {
-        self.q.enqueue(elem);
-    }
-
-   pub fn pop(&mut self) -> Result<T, &str> {
-    if self.is_empty() {
-        return Err("Stack is empty");
-    }
-
-    let use_q1 = self.use_q1_as_main;
-    let main_size = if use_q1 { self.q1.size() } else { self.q2.size() };
-
-    // 临时转移元素
-    for _ in 0..main_size.saturating_sub(1) {
-        let val = if use_q1 {
-            self.q1.dequeue()?
+        if self.use_q1_as_main {
+            self.q1.enqueue(elem);
         } else {
-            self.q2.dequeue()?
-        };
-        if use_q1 {
-            self.q2.enqueue(val);
-        } else {
-            self.q1.enqueue(val);
+            self.q2.enqueue(elem);
         }
     }
 
-    // 取出最后一个元素
-    let result = if use_q1 {
-        self.q1.dequeue()
-    } else {
-        self.q2.dequeue()
-    }?;
+    pub fn pop(&mut self) -> Result<T, &str> {
+        if self.is_empty() {
+            return Err("Stack is empty");
+        }
 
-    // 切换主队列标志
-    self.use_q1_as_main = !self.use_q1_as_main;
+        let use_q1 = self.use_q1_as_main;
+        let main_size = if use_q1 { self.q1.size() } else { self.q2.size() };
 
-    Ok(result)
-}
+        // 先把所有要转移的元素出队到临时 Vec
+        let mut temp = Vec::with_capacity(main_size);
+        if use_q1 {
+            let mut q1_vals = std::mem::take(&mut self.q1.elements);
+            for _ in 0..main_size.saturating_sub(1) {
+                temp.push(q1_vals.remove(0));
+            }
+            let result = q1_vals.remove(0);
+            self.q1.elements = Vec::new();
+            self.q2.elements.extend(temp);
+            self.use_q1_as_main = false;
+            Ok(result)
+        } else {
+            let mut q2_vals = std::mem::take(&mut self.q2.elements);
+            for _ in 0..main_size.saturating_sub(1) {
+                temp.push(q2_vals.remove(0));
+            }
+            let result = q2_vals.remove(0);
+            self.q2.elements = Vec::new();
+            self.q1.elements.extend(temp);
+            self.use_q1_as_main = true;
+            Ok(result)
+        }
+    }
 
     pub fn is_empty(&self) -> bool {
         self.q1.is_empty() && self.q2.is_empty()
